@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrangePiHost | Бесплатный Minecraft хостинг</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Minecraft&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== ОСНОВНЫЕ СТИЛИ ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --mc-green: #5B7C3A;
+            --mc-dark-green: #3A5A1E;
+            --mc-dirt: #836539;
+            --mc-stone: #8B8B8B;
+            --mc-dark: #1A1A1A;
+            --mc-light: #F5F5F5;
+            --mc-gold: #FADA5E;
+            --mc-red: #B02E26;
+            --mc-blue: #3C44AA;
+            --mc-water: #3D57D6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+            color: var(--mc-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .minecraft-font {
+            font-family: 'Minecraft', monospace;
+            letter-spacing: 1px;
+        }
+
+        /* ===== ФОН С БЛОКАМИ ===== */
+        .minecraft-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(to bottom, #0a1931, #1a1a2e);
+            opacity: 0.9;
+        }
+
+        .block-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(139, 139, 139, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(139, 139, 139, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* ===== КОНТЕЙНЕР ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== ШАПКА ===== */
+        .header {
+            padding: 25px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 3px solid var(--mc-green);
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-cube {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(20deg) rotateY(-20deg);
+            animation: cubeRotate 8s infinite linear;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--mc-green), var(--mc-dark-green));
+            border: 3px solid var(--mc-dirt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .cube-face.front { transform: translateZ(30px); }
+        .cube-face.back { transform: rotateY(180deg) translateZ(30px); background: linear-gradient(135deg, var(--mc-dirt), #6b4f2a); }
+
+        .logo-text h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .logo-text .highlight {
+            color: var(--mc-gold);
+            text-shadow: 0 0 10px rgba(250, 218, 94, 0.5);
+        }
+
+        .tagline {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .social-btn {
+            background: linear-gradient(135deg, var(--mc-blue), #2a36a0);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #4a5cd8, #1e2a8a);
+        }
+
+        /* ===== ГЛАВНЫЙ КОНТЕНТ ===== */
+        .main-content {
+            padding: 20px 0 60px;
+        }
+
+        /* Minecraft блок анимация */
+        .minecraft-block {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 40px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: blockFloat 3s ease-in-out infinite;
+        }
+
+        .block-texture {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: linear-gradient(45deg, var(--mc-green) 25%, var(--mc-dark-green) 25%, 
+                        var(--mc-dark-green) 50%, var(--mc-green) 50%, 
+                        var(--mc-green) 75%, var(--mc-dark-green) 75%);
+            background-size: 40px 40px;
+            border: 5px solid var(--mc-dirt);
+            transform: translateZ(60px);
+        }
+
+        .block-shadow {
+            position: absolute;
+            width: 120px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            bottom: -10px;
+            left: 0;
+            filter: blur(10px);
+        }
+
+        /* Заголовок */
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+                flex-direction: column;
+            }
+        }
+
+        .title-part {
+            display: inline-block;
+        }
+
+        .subtitle {
+            margin-bottom: 40px;
+        }
+
+        .pixel-border {
+            display: inline-block;
+            padding: 15px 25px;
+            border: 4px solid var(--mc-gold);
+            background: rgba(26, 26, 26, 0.8);
+            position: relative;
+        }
+
+        .pixel-border:before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 2px solid var(--mc-green);
+            z-index: -1;
+        }
+
+        .pixel-text {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--mc-gold);
+        }
+
+        /* Таймер обратного отсчета */
+        .countdown {
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            border: 3px solid var(--mc-stone);
+        }
+
+        .countdown h3 {
+            margin-bottom: 20px;
+            color: var(--mc-gold);
+            font-size: 1.5rem;
+        }
+
+        .timer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .time-unit {
+            background: rgba(26, 26, 26, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 100px;
+            border: 2px solid var(--mc-green);
+        }
+
+        .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            display: block;
+            text-shadow: 0 0 10px rgba(91, 124, 58, 0.5);
+        }
+
+        .label {
+            font-size: 0.9rem;
+            color: #aaa;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .separator {
+            font-size: 2rem;
+            color: var(--mc-gold);
+            font-weight: bold;
+        }
+
+        /* Форма подписки */
+        .subscribe-section {
+            max-width: 600px;
+            margin: 40px auto;
+        }
+
+        .pixel-card {
+            background: rgba(26, 26, 26, 0.9);
+            border: 4px solid var(--mc-stone);
+            padding: 30px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pixel-card:before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--mc-green), var(--mc-blue), var(--mc-gold));
+            z-index: -1;
+            border-radius: 12px;
+        }
+
+        .pixel-card h3 {
+            color: var(--mc-gold);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pixel-card p {
+            color: #ccc;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .subscribe-form {
+            margin: 25px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--mc-green);
+        }
+
+        .input-with-icon input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--mc-stone);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-with-icon input:focus {
+            outline: none;
+            border-color: var(--mc-gold);
+            box-shadow: 0 0 15px rgba(250, 218, 94, 0.3);
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .checkbox input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-minecraft {
+            background: linear-gradient(135deg, var(--mc-green), var(--mc-dark-green));
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            border: 2px solid var(--mc-dirt);
+        }
+
+        .btn-minecraft:hover {
+            background: linear-gradient(135deg, #6B9A3F, #4A7C1E);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-success {
+            display: none;
+            background: rgba(91, 124, 58, 0.2);
+            border: 2px solid var(--mc-green);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            align-items: center;
+            gap: 10px;
+            color: var(--mc-gold);
+        }
+
+        .stats {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid var(--mc-stone);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ccc;
+        }
+
+        .stat-item i {
+            color: var(--mc-gold);
+        }
+
+        /* Особенности */
+        .features {
+            margin: 80px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            color: white;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 25%;
+            width: 50%;
+            height: 4px;
+            background: linear-gradient(to right, transparent, var(--mc-gold), transparent);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid var(--mc-stone);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--mc-gold);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--mc-blue), #2a36a0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+            color: white;
+        }
+
+        .feature-card h3 {
+            color: var(--mc-gold);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .feature-card p {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Демо панель */
+        .demo-section {
+            margin: 80px 0;
+        }
+
+        .demo-panel {
+            max-width: 800px;
+            margin: 40px auto;
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid var(--mc-stone);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, var(--mc-dark-green), var(--mc-green));
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 3px solid var(--mc-dirt);
+        }
+
+        .server-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        .server-name {
+            font-weight: 600;
+            color: white;
+            flex-grow: 1;
+        }
+
+        .server-players {
+            color: var(--mc-gold);
+            font-weight: 600;
+        }
+
+        .panel-content {
+            padding: 25px;
+        }
+
+        .server-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 600px) {
+            .server-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(139, 139, 139, 0.3);
+        }
+
+        .label {
+            color: #aaa;
+        }
+
+        .value {
+            color: white;
+            font-weight: 600;
+        }
+
+        .value.online {
+            color: #4CAF50;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .demo-btn.start {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+
+        .demo-btn.stop {
+            background: linear-gradient(135deg, #f44336, #c62828);
+            color: white;
+        }
+
+        .demo-btn.restart {
+            background: linear-gradient(135deg, #FF9800, #EF6C00);
+            color: white;
+        }
+
+        .demo-btn.console {
+            background: linear-gradient(135deg, #2196F3, #0D47A1);
+            color: white;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* FAQ */
+        .faq {
+            margin: 80px 0;
+        }
+
+        .faq-list {
+            max-width: 800px;
+            margin: 40px auto;
+        }
+
+        .faq-item {
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--mc-stone);
+        }
+
+        .faq-question {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .faq-question h3 {
+            color: var(--mc-gold);
+            font-size: 1.2rem;
+        }
+
+        .faq-question i {
+            color: var(--mc-gold);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 20px;
+            max-height: 200px;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer p {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Футер */
+        .footer {
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 3px solid var(--mc-green);
+            background: rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-cube.small {
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo-cube.small .cube-face {
+            font-size: 16px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--mc-gold);
+        }
+
+        .footer-copy {
+            width: 100%;
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .disclaimer {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* Анимации */
+        @keyframes cubeRotate {
+            0% { transform: rotateX(20deg) rotateY(0deg); }
+            100% { transform: rotateX(20deg) rotateY(360deg); }
+        }
+
+        @keyframes blockFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Частицы фона */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--mc-gold);
+            border-radius: 50%;
+            animation: particleFloat 15s infinite linear;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Крипер в углу */
+        .creeper-corner {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            opacity: 0.1;
+        }
+
+        .creeper-face {
+            width: 100%;
+            height: 100%;
+            background: #5B7C3A;
+            position: relative;
+            border: 3px solid #3A5A1E;
+        }
+
+        .creeper-eye {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: black;
+            top: 15px;
+        }
+
+        .creeper-eye:first-child {
+            left: 12px;
+        }
+
+        .creeper-eye:last-child {
+            right: 12px;
+        }
+
+        .creeper-mouth {
+            position: absolute;
+            width: 24px;
+            height: 8px;
+            background: black;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .timer {
+                gap: 10px;
+            }
+            
+            .time-unit {
+                min-width: 80px;
+                padding: 15px;
+            }
+            
+            .number {
+                font-size: 2rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .demo-controls {
+                flex-direction: column;
+            }
+            
+            .demo-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .pixel-text {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Фон с анимацией блоков Minecraft -->
+    <div class="minecraft-bg">
+        <div class="block-grid"></div>
+        <div class="particles" id="particles-container"></div>
+    </div>
+
+    <div class="container">
+        <!-- Шапка с логотипом -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-cube">
+                    <div class="cube-face front"><i class="fas fa-cube"></i></div>
+                    <div class="cube-face back"><i class="fas fa-server"></i></div>
+                </div>
+                <div class="logo-text">
+                    <h1 class="minecraft-font">OrangePi<span class="highlight">Host</span></h1>
+                    <p class="tagline">Бесплатный Minecraft хостинг</p>
+                </div>
+            </div>
+            <div class="social">
+                <a href="https://t.me/" target="_blank" class="social-btn">
+                    <i class="fab fa-telegram"></i> Наш Telegram
+                </a>
+            </div>
+        </header>
+
+        <!-- Основная секция -->
+        <main class="main-content">
+            <!-- Анимированный блок Minecraft -->
+            <div class="minecraft-block">
+                <div class="block-texture"></div>
+                <div class="block-shadow"></div>
+            </div>
+
+            <!-- Заголовок и описание -->
+            <div class="hero">
+                <h2 class="title minecraft-font">
+                    <span class="title-part">СКОРО</span>
+                    <span class="title-part highlight">ЗАПУСК</span>
+                </h2>
+                
+                <div class="subtitle">
+                    <div class="pixel-border">
+                        <p class="pixel-text">Бесплатный хостинг Minecraft на Orange Pi Zero 3</p>
+                    </div>
+                </div>
+                
+                <!-- Таймер обратного отсчета -->
+                <div class="countdown">
+                    <h3><i class="fas fa-clock"></i> До запуска осталось:</h3>
+                    <div class="timer">
+                        <div class="time-unit">
+                            <span class="number" id="days">07</span>
+                            <span class="label">дней</span>
+                        </div>
+                        <div class="separator">:</div>
+                        <div class="time-unit">
+                            <span class="number" id="hours">18</span>
+                            <span class="label">часов</span>
+                        </div>
+                        <div class="separator">:</div>
+                        <div class="time-unit">
+                            <span class="number" id="minutes">45</span>
+                            <span class="label">минут</span>
+                        </div>
+                        <div class="separator">:</div>
+                        <div class="time-unit">
+                            <span class="number" id="seconds">30</span>
+                            <span class="label">секунд</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Форма подписки -->
+                <div class="subscribe-section">
+                    <div class="pixel-card">
+                        <h3><i class="fas fa-envelope"></i> Узнать о запуске первым</h3>
+                        <p>Оставьте email и мы сообщим, когда сервис будет готов к работе</p>
+                        
+                        <form id="subscribe-form" class="subscribe-form">
+                            <div class="form-group">
+                                <div class="input-with-icon">
+                                    <i class="fas fa-at"></i>
+                                    <input type="email" id="email" name="email" 
+                                           placeholder="ваш@email.com" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" required>
+                                    <span>Я согласен получать уведомления о запуске</span>
+                                </label>
+                            </div>
+                            <button type="submit" class="btn-minecraft">
+                                <i class="fas fa-rocket"></i>
+                                <span>Сообщить мне о запуске</span>
+                            </button>
+                        </form>
+                        
+                        <div class="form-success" id="success-message">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Спасибо! Мы сообщим вам о запуске.</span>
+                        </div>
+                        
+                        <div class="stats">
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>Уже ждут запуска: <strong id="waiting-count">147</strong> человек</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Особенности будущего сервиса -->
+            <section class="features">
+                <h2 class="section-title minecraft-font">ЧТО МЫ ГОТОВИМ</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Быстрый старт</h3>
+                        <p>Запуск сервера за 2 минуты. Просто введи email и играй</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h3>Бесплатно</h3>
+                        <p>4 часа игры ежедневно бесплатно. Поддерживается рекламой</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h3>Полный контроль</h3>
+                        <p>Выбор версии Minecraft, установка модов и плагинов</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <h3>На Orange Pi</h3>
+                        <p>Энергоэффективные серверы на одноплатниках - экологично!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Демо-панель серверов -->
+            <section class="demo-section">
+                <h2 class="section-title minecraft-font">ПАНЕЛЬ УПРАВЛЕНИЯ</h2>
+                <div class="demo-panel">
+                    <div class="panel-header">
+                        <div class="server-status"></div>
+                        <span class="server-name">OrangePi-Server-01</span>
+                        <span class="server-players">5/20 игроков онлайн</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="server-info">
+                            <div class="info-row">
+                                <span class="label">Статус сервера:</span>
+                                <span class="value online">● Онлайн</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Версия Minecraft:</span>
+                                <span class="value">1.20.4 (Vanilla)</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">IP адрес:</span>
+                                <span class="value">mc.orangepihost.ru</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Порт:</span>
+                                <span class="value">25565</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Запущен:</span>
+                                <span class="value">2 часа 15 минут</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Использование RAM:</span>
+                                <span class="value">1.2 ГБ / 2 ГБ</span>
+                            </div>
+                        </div>
+                        <div class="demo-controls">
+                            <button class="demo-btn start"><i class="fas fa-play"></i> Старт</button>
+                            <button class="demo-btn stop"><i class="fas fa-stop"></i> Стоп</button>
+                            <button class="demo-btn restart"><i class="fas fa-redo"></i> Рестарт</button>
+                            <button class="demo-btn console"><i class="fas fa-terminal"></i> Консоль</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section class="faq">
+                <h2 class="section-title minecraft-font">ЧАСТЫЕ ВОПРОСЫ</h2>
+                <div class="faq-list">
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <h3>Сколько это будет стоить?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Базовое использование - абсолютно бесплатно! До 4 часов игры в день. 
+                            Проект поддерживается за счет рекламы на сайте. В будущем появятся 
+                            платные опции без рекламы и с приоритетным доступом.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <h3>Сколько игроков выдержит сервер?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Orange Pi Zero 3 стабильно работает с 10-15 игроками на Vanilla сервере. 
+                            С модами и плагинами рекомендуется 5-8 игроков для комфортной игры. 
+                            Каждый сервер получает 2 ГБ оперативной памяти.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <h3>Можно ли установить свои моды и плагины?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Да! Через панель управления можно загрузить любой .jar файл ядра 
+                            (Paper, Spigot, Forge) или установить моды через загрузку файлов. 
+                            Также доступны предустановленные популярные сборки.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <h3>Когда точная дата запуска?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Мы планируем запуск через 7-10 дней. Точную дату объявим всем, 
+                            кто оставил email в форме выше. Сейчас идет тестирование инфраструктуры 
+                            и настройка серверов.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Футер -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <div class="logo-cube small">
+                        <div class="cube-face front"><i class="fas fa-cube"></i></div>
+                    </div>
+                    <div>
+                        <h3 class="minecraft-font">OrangePiHost</h3>
+                        <p>Бесплатный хостинг Minecraft серверов</p>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <a href="https://github.com/" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="https://t.me/" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+                    <a href="mailto:contact@orangepihost.ru"><i class="fas fa-envelope"></i> Email</a>
+                </div>
+                
+                <div class="footer-copy">
+                    <p>© 2024 OrangePiHost. Неофициальный проект энтузиастов.</p>
+                    <p class="disclaimer">Не аффилирован с Mojang, Microsoft или Raspberry Pi Foundation.</p>
+                </div>
+            </div>
+            
+            <!-- Крипер в углу -->
+            <div class="creeper-corner">
+                <div class="creeper-face">
+                    <div class="creeper-eye"></div>
+                    <div class="creeper-eye"></div>
+                    <div class="creeper-mouth"></div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Обратный отсчет до запуска (7 дней от текущей даты)
+        function updateCountdown() {
+            const launchDate = new Date();
+            launchDate.setDate(launchDate.getDate() + 7); // +7 дней от текущей даты
+            
+            function update() {
+                const now = new Date();
+                const diff = launchDate - now;
+                
+                if (diff <= 0) {
+                    document.getElementById('days').textContent = '00';
+                    document.getElementById('hours').textContent = '00';
+                    document.getElementById('minutes').textContent = '00';
+                    document.getElementById('seconds').textContent = '00';
+                    return;
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('days').textContent = days.toString().padStart(2, '0');
+                document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+                document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            }
+            
+            update();
+            setInterval(update, 1000);
+        }
+        
+        // Обработка формы подписки
+        document.getElementById('subscribe-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const successMessage = document.getElementById('success-message');
+            const waitingCount = document.getElementById('waiting-count');
+            
+            // Имитация отправки
+            setTimeout(() => {
+                // Показываем сообщение об успехе
+                successMessage.style.display = 'flex';
+                
+                // Увеличиваем счетчик ожидающих
+                let currentCount = parseInt(waitingCount.textContent);
+                waitingCount.textContent = (currentCount + 1).toString();
+                
+                // Очищаем поле ввода
+                document.getElementById('email').value = '';
+                
+                // Через 5 секунд скрываем сообщение
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 5000);
+                
+                // Здесь в реальном проекте будет отправка на сервер
+                console.log('Email сохранен:', email);
+                
+            }, 500);
+        });
+        
+        // Переключение FAQ
+        function toggleFAQ(item) {
+            item.classList.toggle('active');
+        }
+        
+        // Создание частиц фона
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            if (!container) return;
+            
+            // Удаляем старые частицы
+            container.innerHTML = '';
+            
+            // Создаем новые частицы
+            for (let i = 0; i < 25; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 20) + 's';
+                particle.style.opacity = Math.random() * 0.5 + 0.3;
+                container.appendChild(particle);
+            }
+        }
+        
+        // Имитация кликов по кнопкам демо-панели
+        document.querySelectorAll('.demo-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const btnText = this.textContent.trim();
+                alert(`Демо-режим: Кнопка "${btnText}" в реальном проекте будет выполнять это действие`);
+            });
+        });
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCountdown();
+            createParticles();
+            
+            // Автоматическое открытие первого FAQ
+            document.querySelector('.faq-item').classList.add('active');
+            
+            // Анимация для счетчика ожидающих
+            setInterval(() => {
+                const counter = document.getElementById('waiting-count');
+                let count = parseInt(counter.textContent);
+                
+                // Случайное небольшое увеличение (имитация новых подписок)
+                if (Math.random() > 0.7 && count < 200) {
+                    counter.textContent = (count + 1).toString();
+                    counter.style.color = '#FADA5E';
+                    setTimeout(() => {
+                        counter.style.color = '';
+                    }, 300);
+                }
+            }, 30000); // Каждые 30 секунд
+        });
+    </script>
+</body>
+</html>
